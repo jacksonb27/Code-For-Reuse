@@ -1,0 +1,27 @@
+extends Node3D
+
+@export var sensitivity := 0.003
+@export var min_pitch := deg_to_rad(-35)
+@export var max_pitch := deg_to_rad(35)
+@export var height_offset := 1.5
+
+@onready var player := $".."
+
+var yaw := 0.0
+var pitch := 0.0
+
+func _ready():
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _unhandled_input(event):
+	if event is InputEventMouseMotion:
+		yaw -= event.relative.x * sensitivity
+		pitch -= event.relative.y * sensitivity
+		pitch = clamp(pitch, min_pitch, max_pitch)
+
+func _process(delta):
+	# Follow player
+	global_position = player.global_position + Vector3.UP * height_offset
+
+	# Apply rotation
+	rotation = Vector3(pitch, yaw, 0)
