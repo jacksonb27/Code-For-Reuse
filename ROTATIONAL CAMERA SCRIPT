@@ -1,0 +1,41 @@
+extends Camera3D
+
+@export var distance: float = 6.0
+@export var height_offset: float = 1.5
+@export var sensitivity: float = 0.001
+@export var min_pitch: float = deg_to_rad(-25)
+@export var max_pitch: float = deg_to_rad(25)
+
+@onready var player: Node3D = $"../.."
+
+var yaw := 0.0
+var pitch := 0.0
+
+func _ready() -> void:
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		yaw -= event.relative.x * sensitivity
+		pitch -= -event.relative.y * sensitivity * 1 
+		pitch = clamp(pitch, min_pitch, max_pitch)
+
+func _process(delta: float) -> void:
+	if player == null:
+		return
+
+	# Target point to look at (player + a little height so you're not staring at feet)
+	var target := player.global_transform.origin + Vector3.UP * height_offset
+
+	# Build orbit direction from yaw/pitch
+	var dir := Vector3(
+		cos(pitch) * sin(yaw),
+		sin(pitch),
+		cos(pitch) * cos(yaw)
+	)
+
+	# Place camera on a sphere around the target
+	global_transform.origin = target + dir * distance
+
+	# Always face the player
+	look_at(target, Vector3.UP)
